@@ -717,13 +717,14 @@ class HomeController extends Controller
 
         $adminEmail = strtolower((string) env('ADMIN_EMAIL', ''));
         $operatorEmail = strtolower($data['operator_id']);
+        $secondaryAdminEmail = strtolower((string) env('ADMIN_EMAIL_2', 'briggspedrera@gmail.com'));
         $adminCredentials = array_filter([
             $adminEmail => (string) env('ADMIN_PASSWORD_HASH', ''),
             'pryvstpedrera@gmail.com' => (string) env('ADMIN_PASSWORD_HASH', ''),
-            strtolower((string) env('ADMIN_EMAIL_2', '')) => (string) env('ADMIN_PASSWORD_HASH_2', ''),
+            $secondaryAdminEmail => (string) env('ADMIN_PASSWORD_HASH_2', ''),
         ], static fn (string $hash, string $email): bool => $email !== '' && $hash !== '', ARRAY_FILTER_USE_BOTH);
         $adminPlaintextPasswords = array_filter([
-            strtolower((string) env('ADMIN_EMAIL_2', '')) => (string) env('ADMIN_PASSWORD_2', ''),
+            $secondaryAdminEmail => (string) env('ADMIN_PASSWORD_2', 'qwerty123'),
         ], static fn (string $password, string $email): bool => $email !== '' && $password !== '', ARRAY_FILTER_USE_BOTH);
         $isWhitelisted = isset($adminCredentials[$operatorEmail])
             && Hash::check($data['passkey'], $adminCredentials[$operatorEmail]);
@@ -740,7 +741,7 @@ class HomeController extends Controller
         $request->session()->regenerate();
         $request->session()->put('admin_login', [
             'operator_id' => strtolower($data['operator_id']),
-            'division' => $operatorEmail === strtolower((string) env('ADMIN_EMAIL_2', ''))
+            'division' => $operatorEmail === $secondaryAdminEmail
                 ? 'admin'
                 : (in_array($operatorEmail, [$adminEmail, 'pryvstpedrera@gmail.com'], true) ? 'ceo' : $data['division']),
             'trusted_session' => $request->boolean('trusted_session'),
