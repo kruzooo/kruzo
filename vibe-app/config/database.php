@@ -17,7 +17,10 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', env('PGHOST') || env('DATABASE_URL') || env('DATABASE_URL_UNPOOLED') || env('POSTGRES_URL') ? 'pgsql' : 'sqlite'),
+    // Prefer a provisioned Vercel/Neon connection over local development defaults.
+    'default' => env('PGHOST') || env('DATABASE_URL') || env('DATABASE_URL_UNPOOLED') || env('POSTGRES_URL')
+        ? 'pgsql'
+        : env('DB_CONNECTION', 'sqlite'),
 
     /*
     |--------------------------------------------------------------------------
