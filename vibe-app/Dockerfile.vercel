@@ -8,8 +8,8 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
 FROM php:8.4-apache
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libicu-dev libonig-dev libzip-dev \
-    && docker-php-ext-install intl mbstring pdo_mysql zip \
+    && apt-get install -y --no-install-recommends libicu-dev libonig-dev libpq-dev libzip-dev \
+    && docker-php-ext-install intl mbstring pdo_mysql pdo_pgsql zip \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
@@ -32,4 +32,4 @@ ENV APP_ENV=production \
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]
