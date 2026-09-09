@@ -247,11 +247,11 @@ class ExampleTest extends TestCase
             'welcome_credit' => '1',
             'drop_alerts' => '1',
             'terms' => '1',
-        ])->assertRedirect(route('login'));
+        ])->assertRedirect(route('dashboard'));
 
         $this->assertSame('Alyssa Marie', session('customer_profile.first_name'));
-        $this->assertFalse(session()->has('customer_login'));
-        $this->followRedirects($response)->assertSee('Account created successfully');
+        $this->assertSame('alyssa@example.com', session('customer_login.email'));
+        $this->followRedirects($response)->assertSee('Welcome back, Alyssa Marie.');
     }
 
     public function test_admin_dashboard_returns_operations_overview(): void
