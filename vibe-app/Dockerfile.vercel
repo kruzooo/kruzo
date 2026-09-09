@@ -26,7 +26,7 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 ENV APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
-    SESSION_DRIVER=file \
+    SESSION_DRIVER=cookie \
     CACHE_STORE=file \
     QUEUE_CONNECTION=sync
 
