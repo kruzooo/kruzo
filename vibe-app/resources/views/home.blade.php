@@ -460,21 +460,20 @@
             </p>
 </div>
 <!-- Subscription Input Form -->
-<form class="flex flex-col sm:flex-row items-stretch gap-space-xs pt-space-xs" method="POST" action="{{ route('generate') }}">
+<form class="flex flex-col sm:flex-row items-stretch gap-space-xs pt-space-xs" method="POST" action="{{ route('coupon.apply') }}">
 @csrf
 <div class="flex-1 relative">
-<input class="w-full h-13 px-space-md bg-surface text-primary font-body-md text-body-md placeholder:text-secondary focus:outline-none rounded-none" id="contact-input" name="business_type" value="{{ old('business_type') }}" placeholder="Business type, e.g. coffee shop or SaaS platform" required="" type="text">
+<input class="w-full h-13 px-space-md bg-surface text-primary font-body-md text-body-md placeholder:text-secondary focus:outline-none rounded-none" id="contact-input" name="coupon_code" value="{{ old('coupon_code') }}" placeholder="Enter coupon code" autocomplete="off" required type="text">
 </div>
 <button class="bg-surface-container-lowest text-primary px-space-lg py-space-md font-label-caps text-label-caps uppercase tracking-widest font-bold hover:bg-surface-variant transition-colors whitespace-nowrap" type="submit">
-Generate Business Idea
+APPLY COUPON
             </button>
 </form>
-<div class="font-label-caps text-label-caps text-on-primary uppercase tracking-widest bg-on-primary/20 p-space-xs rounded-sm" id="newsletter-toast">
-            @if (session('status')) {{ session('status') }} @endif
-            Thank you! Your contact information has been registered. Use code: <span class="font-bold underline">KRUZO250</span> at checkout.
+<div class="font-label-caps text-label-caps text-on-primary uppercase tracking-widest bg-on-primary/20 p-space-xs rounded-sm {{ session('coupon_success') ? 'coupon-claim-success' : '' }}" id="newsletter-toast">
+            @if (session('coupon_success')) <strong>{{ session('coupon_success') }}</strong> @else Use code <span class="font-bold underline">KRUZO250</span> for ₱250.00 off your initial order. @endif
           </div>
 <p class="font-label-sm text-label-sm text-outline-variant">
-            Describe a business type and connect the generation flow here. Your AI workflow can replace this placeholder response when ready.
+            Enter the code above, then complete checkout to receive the discount.
           </p>
 </div>
 </div>
@@ -487,10 +486,15 @@ Generate Business Idea
 <h5 class="font-title-sm text-title-sm font-bold uppercase" id="toast-title">Item Added to Bag</h5>
 <span class="font-label-caps text-label-caps text-outline-variant uppercase" id="toast-price">₱0.00</span>
 </div>
-<a class="ml-space-md bg-on-primary text-primary px-space-sm py-space-2xs font-label-caps text-label-caps uppercase font-bold hover:bg-surface-variant transition-colors" href="#">VIEW BAG</a>
+<a class="ml-space-md bg-on-primary text-primary px-space-sm py-space-2xs font-label-caps text-label-caps uppercase font-bold hover:bg-surface-variant transition-colors" href="{{ route('cart') }}">VIEW BAG</a>
 </div>
 </div>
 <script>
+  const csrfMeta = document.createElement('meta');
+  csrfMeta.name = 'csrf-token';
+  csrfMeta.content = @json(csrf_token());
+  document.head.appendChild(csrfMeta);
+
   // Add to Bag Micro-interaction
   function handleAddToCart(itemName, itemPrice) {
     const toast = document.getElementById('quick-cart-toast');
@@ -537,6 +541,28 @@ Generate Business Idea
 
   // Keep public catalog cards in sync with the admin inventory editor.
   const managedInventory = @json($inventory);
+  const productImageFallbacks = {
+    'k-01-structural-boxy-tee': @json(asset('images/products/k-07-raw-cut-box-tee.png')),
+    'brutalist-monolith-cuff-ring-set': @json(asset('images/products/k-11-modular-chest-harness.png')),
+  };
+  document.querySelectorAll('[data-product-slug] img').forEach((image) => {
+    const fallback = productImageFallbacks[image.closest('[data-product-slug]')?.dataset.productSlug];
+    if (!fallback) return;
+    const useFallback = () => {
+      if (image.src !== fallback) image.src = fallback;
+    };
+    image.addEventListener('error', useFallback, { once: true });
+    if (image.complete && image.naturalWidth === 0) useFallback();
+  });
+  document.querySelectorAll('header img').forEach((image) => {
+    if (!/KRUZO/i.test(image.alt)) return;
+      const replaceBrokenLogo = () => {
+        if (image.naturalWidth !== 0) return;
+      if (!image.src.endsWith('/images/kruzo-logo.svg')) image.src = '/images/kruzo-logo.svg';
+      };
+    image.addEventListener('error', replaceBrokenLogo, { once: true });
+    if (image.complete && image.naturalWidth === 0) replaceBrokenLogo();
+  });
   const shopRoute = @json(route('shop'));
   const collectionLinks = {
     'shop-all': shopRoute,
@@ -554,8 +580,27 @@ Generate Business Idea
       });
     });
   });
+  const homeBagButton = [...document.querySelectorAll('header button')]
+    .find((button) => /BAG \(/i.test(button.textContent));
+  if (homeBagButton) {
+    const homeBagLink = document.createElement('a');
+    homeBagLink.href = @json(route('cart'));
+    homeBagLink.className = homeBagButton.className;
+    homeBagLink.innerHTML = homeBagButton.innerHTML;
+    homeBagLink.setAttribute('data-path', 'cart');
+    homeBagLink.onclick = () => {
+      window.location.assign(@json(route('cart')));
+      return false;
+    };
+    homeBagButton.replaceWith(homeBagLink);
+  }
   document.querySelectorAll('[data-path="lookbook-ss25"]').forEach((link) => {
     link.href = @json(route('lookbook'));
+  });
+  document.querySelectorAll('a').forEach((link) => {
+    if (link.textContent.trim().toUpperCase() === 'EXPLORE LOOKBOOK') {
+      link.href = @json(route('lookbook'));
+    }
   });
   const contactFeedbackLink = document.createElement('a');
   contactFeedbackLink.href = @json(route('contact'));
@@ -590,5 +635,5 @@ Generate Business Idea
 
 
 <script>window.customerAuthenticated = @json(session()->has('customer_login')); window.customerAvatar = @json(session('customer_profile.avatar'));</script>
-<script src="{{ asset('js/app.js') }}"></script>
+<script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script>
 </body></html>

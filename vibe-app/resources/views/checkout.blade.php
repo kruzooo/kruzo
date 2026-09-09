@@ -59,6 +59,9 @@
                         <div class="checkout-section-heading"><span>03</span><h2>Payment method</h2></div>
                         <label class="payment-option"><input type="radio" name="payment_method" value="cod" checked><span><strong>Cash on Delivery</strong><small>Available nationwide</small></span></label>
                         <label class="payment-option"><input type="radio" name="payment_method" value="gcash"><span><strong>GCash / Maya</strong><small>Payment instructions appear after checkout</small></span></label>
+                        <label class="payment-option"><input type="radio" name="payment_method" value="bdo"><span><strong>BDO Online Banking</strong><small>Transfer instructions appear after checkout</small></span></label>
+                        <label class="payment-option"><input type="radio" name="payment_method" value="bpi"><span><strong>BPI Online Banking</strong><small>Transfer instructions appear after checkout</small></span></label>
+                        <label class="payment-option"><input type="radio" name="payment_method" value="card"><span><strong>Visa / Mastercard</strong><small>Secure card payment</small></span></label>
                         <button type="submit" class="checkout-submit">PLACE ORDER <span class="material-symbols-outlined">arrow_forward</span></button>
                     </section>
                 </form>
@@ -69,9 +72,17 @@
                             <div class="checkout-summary-item"><img src="{{ $item['image'] }}" alt="{{ $item['name'] }}"><div><strong>{{ $item['name'] }}</strong><span>QTY {{ $item['quantity'] }}</span></div><b>{{ $item['price'] }}</b></div>
                         @endforeach
                     </div>
+                    <form class="checkout-coupon-form" method="POST" action="{{ route('coupon.apply') }}">
+                        @csrf
+                        <label>Coupon code<input type="text" name="coupon_code" value="{{ session('coupon.code') }}" placeholder="KRUZO250" autocomplete="off"></label>
+                        <button type="submit">APPLY</button>
+                    </form>
+                    @if (session('coupon_success'))<p class="checkout-coupon-success"><strong>{{ session('coupon_success') }}</strong></p>@endif
+                    @error('coupon_code')<p class="checkout-coupon-error">{{ $message }}</p>@enderror
                     <div class="checkout-total"><span>Subtotal</span><strong>₱{{ number_format($subtotal, 2) }}</strong></div>
+                    @if ($discount > 0)<div class="checkout-total"><span>Coupon discount</span><strong>-₱{{ number_format($discount, 2) }}</strong></div>@endif
                     <div class="checkout-total"><span>Delivery</span><span>Calculated after address</span></div>
-                    <div class="checkout-total checkout-grand-total"><span>Total</span><strong>₱{{ number_format($subtotal, 2) }}</strong></div>
+                    <div class="checkout-total checkout-grand-total"><span>Total</span><strong>₱{{ number_format(max(0, $subtotal - $discount), 2) }}</strong></div>
                     <p class="checkout-note">Your order is reserved for 12:35. Secure checkout for Philippine delivery.</p>
                 </aside>
             </div>

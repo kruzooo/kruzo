@@ -12,6 +12,15 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body class="admin-page">
+@php
+    $adminEmail = strtolower((string) session('admin_login.operator_id'));
+    $adminName = $adminEmail === 'briggspedrera@gmail.com' ? 'Briggs Pedrera' : 'Pryvst Pedrera';
+    $adminRole = match (session('admin_login.division')) {
+        'ceo' => 'Chief Executive Officer',
+        'admin' => 'System Administrator',
+        default => 'Operations Director',
+    };
+@endphp
     <aside class="admin-sidebar">
         <div>
             <div class="admin-brand">
@@ -30,10 +39,10 @@
             </nav>
         </div>
         <div class="admin-user">
-            <div class="admin-avatar">PP</div>
+            <div class="admin-avatar">{{ strtoupper(substr($adminName, 0, 1) . substr(strrchr($adminName, ' '), 1, 1)) }}</div>
             <div>
-                <strong>Pryvst Pedrera</strong>
-                <span>Operations Director</span>
+                <strong>{{ $adminName }}</strong>
+                <span>{{ $adminRole }}</span>
             </div>
         </div>
     </aside>
@@ -117,7 +126,7 @@
                                     @forelse ($orders as $order)
                                         <tr>
                                             <td><strong>{{ $order['number'] }}</strong></td>
-                                            <td>{{ $order['customer'] }}<span>{{ $order['destination'] }}</span></td>
+                                            <td>{{ $order['customer'] }}<span>{{ $order['email'] }}</span><span>{{ $order['destination'] }}</span></td>
                                             <td>{{ $order['items'] }}</td>
                                             <td>{{ $order['courier'] }}</td>
                                             <td>{{ $order['payment'] }}</td>

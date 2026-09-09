@@ -11,6 +11,15 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body class="admin-page">
+@php
+    $adminEmail = strtolower((string) session('admin_login.operator_id'));
+    $adminName = $adminEmail === 'briggspedrera@gmail.com' ? 'Briggs Pedrera' : 'Pryvst Pedrera';
+    $adminRole = match (session('admin_login.division')) {
+        'ceo' => 'Chief Executive Officer',
+        'admin' => 'System Administrator',
+        default => 'Operations Director',
+    };
+@endphp
     <aside class="admin-sidebar">
         <div>
             <div class="admin-brand"><a href="{{ route('home') }}">KRUZO</a><span>MNL</span></div>
@@ -25,7 +34,7 @@
                 <a class="{{ $section === 'settings' ? 'active' : '' }}" href="{{ route('admin.settings') }}"><span class="material-symbols-outlined">settings</span> System Settings</a>
             </nav>
         </div>
-        <div class="admin-user"><div class="admin-avatar">PP</div><div><strong>Pryvst Pedrera</strong><span>Operations Director</span></div></div>
+        <div class="admin-user"><div class="admin-avatar">{{ strtoupper(substr($adminName, 0, 1) . substr(strrchr($adminName, ' '), 1, 1)) }}</div><div><strong>{{ $adminName }}</strong><span>{{ $adminRole }}</span></div></div>
     </aside>
 
     <div class="admin-shell">
@@ -42,7 +51,7 @@
             @elseif ($section === 'contact')
                 <section class="admin-panel"><div class="admin-panel-heading"><div><p>INCOMING CLIENT COMMUNICATIONS</p><h2>Contact / Feedback Inbox</h2></div><span class="admin-inventory-count">{{ count($messages) }} MESSAGES</span></div><div class="admin-inbox-list">@forelse ($messages as $message)<article class="admin-inbox-message"><div class="admin-inbox-message-head"><div><strong>{{ $message['name'] }}</strong><span>{{ $message['contact'] }} · {{ $message['channel'] }}</span></div><mark>{{ $message['specialization'] }}</mark></div><p>{{ $message['message'] }}</p><small>{{ $message['reference'] }} · {{ $message['created_at'] ?? 'Recently submitted' }}</small></article>@empty<div class="admin-data-empty">No contact or feedback messages received yet.</div>@endforelse</div></section>
             @else
-                <section class="admin-panel"><div class="admin-panel-heading"><div><p>ACTIVE WORKSPACE</p><h2>System Settings</h2></div></div><div class="admin-settings-list"><div><span>Admin operator</span><strong>Pryvst Pedrera</strong></div><div><span>Operations node</span><strong>MAKATI NODE 01</strong></div><div><span>Catalog storage</span><strong>{{ config('database.default') === 'mysql' ? 'MYSQL DATABASE' : 'LOCAL SESSION FALLBACK' }}</strong></div><div><span>Order status sync</span><strong>ENABLED</strong></div></div><form class="admin-logout-form" method="POST" action="{{ route('admin.logout') }}">@csrf<button class="admin-danger" type="submit"><span class="material-symbols-outlined">logout</span> LOG OUT ADMIN ACCOUNT</button></form></section>
+                <section class="admin-panel"><div class="admin-panel-heading"><div><p>ACTIVE WORKSPACE</p><h2>System Settings</h2></div></div><div class="admin-settings-list"><div><span>Admin operator</span><strong>{{ $adminName }}</strong></div><div><span>Clearance level</span><strong>{{ $adminRole }}</strong></div><div><span>Operations node</span><strong>MAKATI NODE 01</strong></div><div><span>Catalog storage</span><strong>{{ config('database.default') === 'mysql' ? 'MYSQL DATABASE' : 'LOCAL SESSION FALLBACK' }}</strong></div><div><span>Order status sync</span><strong>ENABLED</strong></div></div><form class="admin-logout-form" method="POST" action="{{ route('admin.logout') }}">@csrf<button class="admin-danger" type="submit"><span class="material-symbols-outlined">logout</span> LOG OUT ADMIN ACCOUNT</button></form></section>
             @endif
         </main>
     </div>

@@ -69,6 +69,9 @@
                 @if (session('registration_success'))
                     <div class="login-success" role="status">{{ session('registration_success') }}</div>
                 @endif
+                @if (session('password_reset_complete'))
+                    <div class="login-success" role="status">{{ session('password_reset_complete') }}</div>
+                @endif
 
                 <form method="POST" action="{{ route('login.authenticate') }}" class="login-form">
                     @csrf
@@ -80,7 +83,7 @@
 
                     <div class="login-password-row">
                         <label for="password">PASSWORD</label>
-                        <a href="{{ route('login') }}#support">FORGOT PASSWORD?</a>
+                        <a href="{{ route('password.request') }}">FORGOT PASSWORD?</a>
                     </div>
                     <div class="login-input-wrap">
                         <span class="material-symbols-outlined">lock</span>

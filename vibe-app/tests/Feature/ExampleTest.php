@@ -3,20 +3,28 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Storage::fake('local');
+    }
+
     /**
      * A basic test example.
      */
-    public function test_the_homepage_returns_the_generation_form(): void
+    public function test_the_homepage_returns_the_coupon_form(): void
     {
         $response = $this->get('/');
 
         $response->assertStatus(200)
-            ->assertSee('business_type')
-            ->assertSee('Generate');
+            ->assertSee('coupon_code')
+            ->assertSee('APPLY COUPON');
     }
 
     public function test_homepage_has_a_contact_feedback_button(): void
@@ -34,6 +42,42 @@ class ExampleTest extends TestCase
             ->assertSee('Generated successfully');
     }
 
+    public function test_valid_coupon_is_saved_and_applied(): void
+    {
+        $response = $this->from('/')->post('/coupon/apply', [
+            'coupon_code' => 'kruzo250',
+        ]);
+
+        $response->assertRedirect('/')->assertSessionHas('coupon', [
+            'code' => 'KRUZO250',
+            'amount' => 250,
+        ])->assertSessionHas('coupon_success', 'CONGRATULATIONS! Your free coupon KRUZO250 is claimed: ₱250.00 off your initial order.');
+
+        $this->withSession([
+            'coupon' => ['code' => 'KRUZO250', 'amount' => 250],
+            'cart' => [
+                'k-01-structural-boxy-tee' => [
+                    'slug' => 'k-01-structural-boxy-tee',
+                    'name' => 'K-01 STRUCTURAL BOXY TEE',
+                    'price' => '₱2,250.00',
+                    'image' => 'https://example.com/product.jpg',
+                    'quantity' => 1,
+                ],
+            ],
+        ])->get('/checkout')
+            ->assertOk()
+            ->assertSee('Coupon discount')
+            ->assertSee('-₱250.00')
+            ->assertSee('₱2,000.00');
+    }
+
+    public function test_invalid_coupon_is_rejected(): void
+    {
+        $this->from('/')->post('/coupon/apply', [
+            'coupon_code' => 'NOTREAL',
+        ])->assertRedirect('/')->assertSessionHasErrors('coupon_code');
+    }
+
     public function test_shop_page_returns_catalog(): void
     {
         $response = $this->get('/shop');
@@ -49,7 +93,10 @@ class ExampleTest extends TestCase
             ->assertOk()
             ->assertSee('LOOKBOOK SS25')
             ->assertSee('ARCHITECTURAL FORM')
-            ->assertSee('THE MONOLITHIC');
+            ->assertSee('THE MONOLITHIC')
+            ->assertSee('images/lookbook-ss25-hero.png')
+            ->assertSee('images/products/k-10-wide-pleat-trouser.png')
+            ->assertSee('images/products/k-11-modular-chest-harness.png');
     }
 
     public function test_contact_page_sends_a_concierge_ticket(): void
@@ -87,8 +134,24 @@ class ExampleTest extends TestCase
             ->assertOk()
             ->assertSee('K-01 STRUCTURAL BOXY TEE')
             ->assertSee('₱2,250.00')
+            ->assertSee('images/products/k-07-raw-cut-box-tee.png')
             ->assertSee('PROCEED TO CHECKOUT')
             ->assertSee(route('checkout'));
+    }
+
+    public function test_cart_replaces_unavailable_product_images_with_local_assets(): void
+    {
+        $this->withSession(['cart' => [
+            'brutalist-monolith-cuff-ring-set' => [
+                'slug' => 'brutalist-monolith-cuff-ring-set',
+                'name' => 'BRUTALIST MONOLITH CUFF RING SET',
+                'price' => '₱3,450.00',
+                'image' => 'https://example.com/expired-image.jpg',
+                'quantity' => 1,
+            ],
+        ]])->get('/cart')
+            ->assertOk()
+            ->assertSee('images/products/k-11-modular-chest-harness.png');
     }
 
     public function test_checkout_page_shows_the_session_cart(): void
@@ -107,6 +170,9 @@ class ExampleTest extends TestCase
             ->assertOk()
             ->assertSee('CHECKOUT')
             ->assertSee('K-01 STRUCTURAL BOXY TEE')
+            ->assertSee('BDO Online Banking')
+            ->assertSee('BPI Online Banking')
+            ->assertSee('Visa / Mastercard')
             ->assertSee('PLACE ORDER');
     }
 
@@ -198,6 +264,49 @@ class ExampleTest extends TestCase
             ->assertSee('Vault Re-Stock');
     }
 
+    public function test_admin_dashboard_shows_completed_customer_orders_not_automated_test_orders(): void
+    {
+        Storage::disk('local')->put('orders.json', json_encode([
+            [
+                'number' => 'KRZ-MNL-TEST01',
+                'cart' => [],
+                'subtotal' => 2250,
+                'customer' => [
+                    'email' => 'customer@example.com',
+                    'first_name' => 'Alyssa',
+                    'last_name' => 'Reyes',
+                    'address' => 'Test address',
+                    'barangay' => 'Test barangay',
+                    'city' => 'Test city',
+                    'payment_method' => 'cod',
+                ],
+                'status' => 'order_received',
+            ],
+            [
+                'number' => 'KRZ-MNL-REAL01',
+                'cart' => ['k-01' => ['quantity' => 1, 'name' => 'K-01 STRUCTURAL BOXY TEE']],
+                'subtotal' => 2250,
+                'customer' => [
+                    'email' => 'buyer@example.test',
+                    'first_name' => 'Real',
+                    'last_name' => 'Customer',
+                    'address' => 'Buyer address',
+                    'barangay' => 'Buyer barangay',
+                    'city' => 'Makati',
+                    'payment_method' => 'bdo',
+                ],
+                'status' => 'order_received',
+            ],
+        ]));
+
+        $this->withSession(['admin_login' => ['operator_id' => 'pryvstpedrera@gmail.com']])
+            ->get('/admin/dashboard')
+            ->assertOk()
+            ->assertSee('Real Customer')
+            ->assertSee('buyer@example.test')
+            ->assertDontSee('Alyssa Reyes');
+    }
+
     public function test_admin_inventory_page_is_available(): void
     {
         $this->withSession(['admin_login' => ['operator_id' => 'pryvstpedrera@gmail.com']])->get('/admin/inventory')
@@ -286,7 +395,7 @@ class ExampleTest extends TestCase
             'province' => 'Metro Manila',
             'postal_code' => '1634',
             'phone' => '+63 917 842 5591',
-            'payment_method' => 'cod',
+            'payment_method' => 'bdo',
         ]);
 
         $response->assertRedirect(route('thank-you'));
@@ -299,6 +408,7 @@ class ExampleTest extends TestCase
             ->assertSee('Alyssa Reyes');
 
         $this->assertSame([], session('cart', []));
+        $this->assertSame('bdo', session('last_order.customer.payment_method'));
 
         $this->get('/dashboard')
             ->assertOk()

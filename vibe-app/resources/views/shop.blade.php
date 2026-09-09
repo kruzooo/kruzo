@@ -1146,4 +1146,4 @@
     card.dataset.price = item.price;
   });
 </script>
-<script>window.customerAuthenticated = @json(session()->has('customer_login')); window.customerAvatar = @json(session('customer_profile.avatar'));</script><script src="{{ asset('js/app.js') }}"></script></body></html>
+<script>window.customerAuthenticated = @json(session()->has('customer_login')); window.customerAvatar = @json(session('customer_profile.avatar'));</script><script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script></body></html>

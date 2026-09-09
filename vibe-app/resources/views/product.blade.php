@@ -54,24 +54,24 @@
 </div>
 <!-- Hero Image: User-provided reference styling -->
 <div class="w-full aspect-[3/4] bg-surface-container-lowest flex items-center justify-center overflow-hidden">
-<img alt="K-01 Structural Boxy Tee editorial look" class="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-500 ease-out" src="{{ $product['image'] }}">
+<img id="product-main-image" alt="K-01 Structural Boxy Tee editorial look" class="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-500 ease-out" src="{{ $product['image'] }}">
 </div>
 </div>
 <!-- Gallery Thumbnails & Micro Perspectives Rail -->
 <div class="grid grid-cols-4 gap-space-sm">
-<button class="aspect-[3/4] bg-surface-container-lowest overflow-hidden relative shadow-sm ring-2 ring-primary" type="button">
+<button class="aspect-[3/4] bg-surface-container-lowest overflow-hidden relative shadow-sm ring-2 ring-primary" data-gallery-image="{{ $product['image'] }}" type="button">
 <img alt="Front silhouette" class="w-full h-full object-cover" src="{{ $product['image'] }}">
 <span class="absolute bottom-1 right-1 bg-primary text-on-primary text-[9px] px-1 font-mono uppercase">01 // FULL</span>
 </button>
-<button class="aspect-[3/4] bg-surface-container-low overflow-hidden relative shadow-sm hover:ring-1 hover:ring-outline transition-all" type="button">
+<button class="aspect-[3/4] bg-surface-container-low overflow-hidden relative shadow-sm hover:ring-1 hover:ring-outline transition-all" data-gallery-image="https://lh3.googleusercontent.com/aida-public/AB6AXuAApSWlpUTm8mEzykxA31yse9XpP9gw07U-NZti9lXvwha3ucH5I3MwrXC8MOyHodHyPvREOfN82UsRL59i4EXnT4LEyP6QeHeLaAL97D6V-MIrCa5ywjtzEjHCCpXgfmSrVNA74fQ63zdz-F_6y7jXGVdfwTTVRq3cavi_LAKBYggzw9-e4H60GbpRRp3y03HtkCVDdp2WHvFyVMJPMQww073SV-8n0R9xaWeop2FDm5nteQRsbxpi" type="button">
 <img class="w-full h-full object-cover" data-alt="Macro close up shot of 1.25 inch reinforced high-retention ribbed collar and blind stitched neckline of pre-shrunk compact combed cotton fabric in washed onyx black." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAApSWlpUTm8mEzykxA31yse9XpP9gw07U-NZti9lXvwha3ucH5I3MwrXC8MOyHodHyPvREOfN82UsRL59i4EXnT4LEyP6QeHeLaAL97D6V-MIrCa5ywjtzEjHCCpXgfmSrVNA74fQ63zdz-F_6y7jXGVdfwTTVRq3cavi_LAKBYggzw9-e4H60GbpRRp3y03HtkCVDdp2WHvFyVMJPMQww073SV-8n0R9xaWeop2FDm5nteQRsbxpi">
 <span class="absolute bottom-1 right-1 bg-surface-container-highest text-on-surface text-[9px] px-1 font-mono uppercase">02 // COLLAR</span>
 </button>
-<button class="aspect-[3/4] bg-surface-container-low overflow-hidden relative shadow-sm hover:ring-1 hover:ring-outline transition-all" type="button">
+<button class="aspect-[3/4] bg-surface-container-low overflow-hidden relative shadow-sm hover:ring-1 hover:ring-outline transition-all" data-gallery-image="https://lh3.googleusercontent.com/aida-public/AB6AXuBqjJsHfw9zkD_biJ3D6_pLICp3VBeLkKL9_0Bah-UvUp9myUl7_YFTQ0EP5W6VDmt_N6oYEawWfyZ3-ASzxde3UlDf50316n1lgGyAhk2RfNe0uJRR_tIIcs9jt-e0rWmc4ip26I2fpwOYO9dDyrjP8Gc_h7gbJiATajghwB1XPgTHmKqnFOQsiRR4c92lkXZnaj9IWJeg_sqGsXvVKfPnEmF92lMNImoC25hT9DjnHx71tCE9BxUV" type="button">
 <img class="w-full h-full object-cover" data-alt="Side profile angle highlighting the calculated drop-shoulder posture and structural sleeve flare on heavyweight 280 GSM cotton knit fabric." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqjJsHfw9zkD_biJ3D6_pLICp3VBeLkKL9_0Bah-UvUp9myUl7_YFTQ0EP5W6VDmt_N6oYEawWfyZ3-ASzxde3UlDf50316n1lgGyAhk2RfNe0uJRR_tIIcs9jt-e0rWmc4ip26I2fpwOYO9dDyrjP8Gc_h7gbJiATajghwB1XPgTHmKqnFOQsiRR4c92lkXZnaj9IWJeg_sqGsXvVKfPnEmF92lMNImoC25hT9DjnHx71tCE9BxUV">
 <span class="absolute bottom-1 right-1 bg-surface-container-highest text-on-surface text-[9px] px-1 font-mono uppercase">03 // DRAPE</span>
 </button>
-<button class="aspect-[3/4] bg-surface-container-low overflow-hidden relative shadow-sm hover:ring-1 hover:ring-outline transition-all" type="button">
+<button class="aspect-[3/4] bg-surface-container-low overflow-hidden relative shadow-sm hover:ring-1 hover:ring-outline transition-all" data-gallery-image="https://lh3.googleusercontent.com/aida-public/AB6AXuAEwmC570F_rtKv0o3hUsSAjVY4lJfPwp91jdRzFQeuuh869yvEOb_V4YipBn62ecCNZ-vNgThq8kVYALPgK4jhuw57xRn5-GvKl4y3ELUjwzv4Hu-WQtZowsKLw0Bpb-lKP2_XlJKyg4eSIBmFb_eI-lErjCd_6SnqdMMTz8gPBbQy5MCqSBJiV45Cji3XOyfSh6OU3WSTWDEPjHDMuwNEAvN40HdAERf7SCezOanghXI2wYflOcS0I" type="button">
 <img class="w-full h-full object-cover" data-alt="Minimalist architectural studio crop of the industrial hem label woven badge stating CRAFTED IN THE PHILIPPINES KRUZO ATELIER with clean overcast lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEwmC570F_rtKv0o3hUsSAjVY4lJfPwp91jdRzFQeuuh869yvEOb_V4YipBn62ecCNZ-vNgThq8kVYALPgK4jhuw57xRn5-GvKl4y3ELUjwzv4Hu-WQtZowsKLw0Bpb-lKP2_XlJKyg4eSIBmFb_eI-lErjCd_6SnqdMMz8gPBbQy5MCqSBJiV45Cji3XOyfSh6OU3WSTWDEPjHDMuwNEAvN40HdAERf7SCezOanghXI2wYflOcS0I">
 <span class="absolute bottom-1 right-1 bg-surface-container-highest text-on-surface text-[9px] px-1 font-mono uppercase">04 // TAG</span>
 </button>
@@ -373,7 +373,7 @@
 <!-- 3-Item Architectural Grid -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
 <!-- Pairing 01: Cuff & Ring Set with Provided Image -->
-<div class="group flex flex-col bg-surface-container-lowest shadow-sm hover:shadow-md transition-all">
+<div class="group flex flex-col bg-surface-container-lowest shadow-sm hover:shadow-md transition-all" data-product-slug="brutalist-monolith-cuff-ring-set">
 <div class="relative aspect-[3/4] bg-surface-container-low overflow-hidden">
 <div class="absolute top-space-sm left-space-sm z-10">
 <span class="bg-primary text-on-primary font-label-caps text-label-caps uppercase px-space-xs py-space-2xs tracking-wider">
@@ -396,7 +396,7 @@
 </div>
 </div>
 <!-- Pairing 02: Dropped Raglan Longline -->
-<div class="group flex flex-col bg-surface-container-lowest shadow-sm hover:shadow-md transition-all">
+<div class="group flex flex-col bg-surface-container-lowest shadow-sm hover:shadow-md transition-all" data-product-slug="k-02-dropped-raglan-longline">
 <div class="relative aspect-[3/4] bg-surface-container-low overflow-hidden">
 <div class="absolute top-space-sm left-space-sm z-10">
 <span class="bg-surface-container-highest text-primary font-label-caps text-label-caps uppercase px-space-xs py-space-2xs tracking-wider">
@@ -419,7 +419,7 @@
 </div>
 </div>
 <!-- Pairing 03: Geometric Key Tether -->
-<div class="group flex flex-col bg-surface-container-lowest shadow-sm hover:shadow-md transition-all">
+<div class="group flex flex-col bg-surface-container-lowest shadow-sm hover:shadow-md transition-all" data-product-slug="geometric-carabiner-key-tether">
 <div class="relative aspect-[3/4] bg-surface-container-low overflow-hidden">
 <div class="absolute top-space-sm left-space-sm z-10">
 <span class="bg-surface-container-highest text-primary font-label-caps text-label-caps uppercase px-space-xs py-space-2xs tracking-wider">
@@ -446,16 +446,30 @@
 <!-- REVIEWS & ATELIER COMMUNITY VERIFICATION -->
 <section class="w-full bg-surface-container-low py-space-3xl px-gutter-desktop">
 <div class="max-w-max-width mx-auto space-y-space-2xl">
+@if (session('review_success'))
+<div class="bg-primary text-on-primary px-space-md py-space-sm font-label-caps text-label-caps uppercase tracking-wider" role="status">{{ session('review_success') }}</div>
+@endif
 <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-space-md">
 <div>
 <span class="font-label-caps text-label-caps uppercase tracking-widest text-secondary font-bold">COMMUNITY REVIEWS (4.9 / 5.0)</span>
 <h2 class="font-display-xl text-headline-md uppercase font-bold text-primary tracking-tight">COMMUNITY REVIEWS (4.9 / 5.0)</h2>
 </div>
-<button class="px-space-md py-space-xs bg-primary text-on-primary font-label-caps text-label-caps uppercase tracking-wider hover:bg-neutral-800 transition-colors" type="button">
+<button class="px-space-md py-space-xs bg-primary text-on-primary font-label-caps text-label-caps uppercase tracking-wider hover:bg-neutral-800 transition-colors" id="writeReviewBtn" type="button">
           WRITE A REVIEW
         </button>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+@foreach ($reviews as $review)
+<div class="bg-surface-container-lowest p-space-lg shadow-sm space-y-space-sm">
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">{{ str_repeat('★', (int) $review['rating']) }}{{ str_repeat('☆', 5 - (int) $review['rating']) }}</span>
+<span class="font-label-caps text-label-caps uppercase text-secondary">CUSTOMER REVIEW</span>
+</div>
+<p class="font-title-sm text-title-sm font-bold text-primary">“{{ $review['title'] }}”</p>
+<p class="font-body-md text-body-md text-secondary">{{ $review['body'] }}</p>
+<p class="font-label-sm text-label-sm font-bold text-primary">— {{ $review['name'] }}</p>
+</div>
+@endforeach
 <!-- Review 01 -->
 <div class="bg-surface-container-lowest p-space-lg shadow-sm space-y-space-sm">
 <div class="flex items-center justify-between">
@@ -495,6 +509,28 @@
 </div>
 </div>
 </section>
+<!-- WRITE A REVIEW MODAL -->
+<div class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-space-md" id="reviewModal">
+<div class="bg-surface-container-lowest max-w-xl w-full p-space-xl shadow-2xl space-y-space-lg max-h-[90vh] overflow-y-auto">
+<div class="flex items-start justify-between gap-space-md">
+<div>
+<span class="font-label-caps text-label-caps uppercase text-secondary font-bold">PRODUCT FEEDBACK</span>
+<h3 class="font-headline-md text-headline-md uppercase font-bold text-primary">WRITE A REVIEW</h3>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-primary hover:bg-surface-container-highest transition-colors" id="closeReviewModal" type="button" aria-label="Close review form"><span class="material-symbols-outlined">close</span></button>
+</div>
+<form action="{{ route('product.review.store', $slug) }}" method="POST" class="space-y-space-md">
+@csrf
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<label class="space-y-space-2xs"><span class="font-label-caps text-label-caps uppercase text-primary font-bold">YOUR NAME</span><input class="w-full border border-surface-container-highest bg-surface-container-low px-space-sm py-space-xs text-on-surface focus:border-primary focus:outline-none" name="name" required maxlength="120" value="{{ old('name') }}"></label>
+<label class="space-y-space-2xs"><span class="font-label-caps text-label-caps uppercase text-primary font-bold">RATING</span><select class="w-full border border-surface-container-highest bg-surface-container-low px-space-sm py-space-xs text-on-surface focus:border-primary focus:outline-none" name="rating" required><option value="5">5 / 5 - Excellent</option><option value="4">4 / 5 - Great</option><option value="3">3 / 5 - Good</option><option value="2">2 / 5 - Fair</option><option value="1">1 / 5 - Poor</option></select></label>
+</div>
+<label class="block space-y-space-2xs"><span class="font-label-caps text-label-caps uppercase text-primary font-bold">REVIEW TITLE</span><input class="w-full border border-surface-container-highest bg-surface-container-low px-space-sm py-space-xs text-on-surface focus:border-primary focus:outline-none" name="title" required maxlength="160" value="{{ old('title') }}"></label>
+<label class="block space-y-space-2xs"><span class="font-label-caps text-label-caps uppercase text-primary font-bold">YOUR EXPERIENCE</span><textarea class="w-full min-h-32 resize-y border border-surface-container-highest bg-surface-container-low px-space-sm py-space-xs text-on-surface focus:border-primary focus:outline-none" name="body" required maxlength="2000">{{ old('body') }}</textarea></label>
+<button class="w-full bg-primary text-on-primary px-space-md py-space-sm font-label-caps text-label-caps uppercase tracking-wider hover:bg-neutral-800 transition-colors" type="submit">PUBLISH REVIEW</button>
+</form>
+</div>
+</div>
 <!-- SIZE GUIDE MODAL (Interactive Drawer Simulation) -->
 <div class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-space-md" id="sizeGuideModal">
 <div class="bg-surface-container-lowest max-w-2xl w-full p-space-xl shadow-2xl space-y-space-lg max-h-[90vh] overflow-y-auto">
@@ -658,9 +694,30 @@
         item.classList.toggle('text-on-primary', selected);
         item.classList.toggle('text-on-primary/60', !selected);
       });
-      productInfoPanels.forEach((panel) => panel.classList.toggle('hidden', panel.id !== panelId));
+  productInfoPanels.forEach((panel) => panel.classList.toggle('hidden', panel.id !== panelId));
     });
   });
+
+  const writeReviewBtn = document.getElementById('writeReviewBtn');
+  const reviewModal = document.getElementById('reviewModal');
+  const closeReviewModal = document.getElementById('closeReviewModal');
+
+  function closeReviewDialog() {
+    if (!reviewModal) return;
+    reviewModal.classList.add('hidden');
+    reviewModal.classList.remove('flex');
+  }
+
+  if (writeReviewBtn && reviewModal && closeReviewModal) {
+    writeReviewBtn.addEventListener('click', () => {
+      reviewModal.classList.remove('hidden');
+      reviewModal.classList.add('flex');
+    });
+    closeReviewModal.addEventListener('click', closeReviewDialog);
+    reviewModal.addEventListener('click', (event) => {
+      if (event.target === reviewModal) closeReviewDialog();
+    });
+  }
 
   // Toast feedback is kept separate from the shared add-to-cart request in public/js/app.js.
   const addToBagBtn = document.getElementById('addToBagBtn');
@@ -722,4 +779,4 @@
   }
 </script></main><footer class="w-full bg-surface-container-lowest border-t border-surface-container-highest mt-space-4xl"><div class="max-w-max-width mx-auto px-gutter-desktop py-space-3xl"><div class="grid grid-cols-1 md:grid-cols-12 gap-space-2xl pb-space-2xl border-b border-surface-container-highest"><div class="md:col-span-5 flex flex-col justify-between pr-space-lg"><div class="space-y-space-md"><div class="flex items-center"><img alt="KRUZO MNL" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1Xl5Ai1AMcRNxJxGyvUT5R8CfFImqwT8ChuQNxqVStwZW0Tjk45G863yiClacnu9Ogsd_fLpK_IL7u2FrXw4l2uhykVwCgacR0_vmKI-NQN-WxVks15fKeUm1ifAMrDtPX4b0VT8yALGChnWB3y0CR5-LYstq9_1Sg-loh_p0RDjODjO5OYjKtlDFu225ZSde-kn_OIs4-BtA1Ijg8g3IEifvj2IOvVpqTE4bhxQTkiiJMW0woIIfTc8OA"></div><p class="font-body-md text-body-md text-on-surface-variant max-w-sm">Elevated architectural garments engineered for the tropical climate. Built with brutalist discipline and tailored precision in Metro Manila.</p></div><div class="pt-space-xl"><span class="font-label-caps text-label-caps uppercase text-secondary block mb-space-xs">MANILA FLAGSHIP HUB</span><p class="font-body-md text-body-md text-on-surface">Chino Roces Ave, Makati, Metro Manila, Philippines</p></div></div><div class="md:col-span-4 space-y-space-md"><span class="font-label-caps text-label-caps uppercase text-primary tracking-widest block">CUSTOMER CARE &amp; LOGISTICS</span><ul class="space-y-space-xs"><li class="font-body-md text-body-md text-on-surface-variant">Metro Manila &amp; Nationwide Delivery (LBC &amp; J&amp;T Express)</li><li class="font-body-md text-body-md text-on-surface-variant">Cash on Delivery (COD) Available Nationwide</li><li class="font-body-md text-body-md text-on-surface-variant">GCash / Maya / Card Direct Checkout</li><li class="font-body-md text-body-md text-on-surface-variant">Instant Courier Fulfillment via Grab / Lalamove</li><li class="font-body-md text-body-md text-on-surface-variant">Order Tracking &amp; Dispatch Status</li><li class="font-body-md text-body-md text-on-surface-variant">Returns &amp; Size Exchanges Policy</li></ul></div><div class="md:col-span-3 space-y-space-md"><span class="font-label-caps text-label-caps uppercase text-primary tracking-widest block">DOMESTIC PAYMENT PARTNERS</span><div class="grid grid-cols-2 gap-space-2xs"><div class="border border-surface-container-highest p-space-xs text-center"><span class="font-label-caps text-label-caps uppercase font-bold text-on-surface">GCASH</span></div><div class="border border-surface-container-highest p-space-xs text-center"><span class="font-label-caps text-label-caps uppercase font-bold text-on-surface">MAYA</span></div><div class="border border-surface-container-highest p-space-xs text-center"><span class="font-label-caps text-label-caps uppercase font-bold text-on-surface">COD</span></div><div class="border border-surface-container-highest p-space-xs text-center"><span class="font-label-caps text-label-caps uppercase font-bold text-on-surface">BDO / BPI</span></div><div class="border border-surface-container-highest p-space-xs text-center col-span-2"><span class="font-label-caps text-label-caps uppercase font-bold text-on-surface">VISA / MASTERCARD</span></div></div></div></div><div class="pt-space-lg flex flex-col md:flex-row items-center justify-between gap-space-md"><span class="font-label-sm text-label-sm text-on-surface-variant">© 2025 KRUZO Manila Inc. All rights reserved. Designed and crafted in the Philippines.</span><div class="flex items-center gap-space-md"><span class="font-label-caps text-label-caps uppercase text-secondary">NCR SAME-DAY ACTIVE</span><span class="font-label-caps text-label-caps uppercase text-secondary">PROVINCIAL DISPATCH DAILY</span></div></div></div></footer>
 
-<script>window.customerAuthenticated = @json(session()->has('customer_login')); window.customerAvatar = @json(session('customer_profile.avatar'));</script><script src="{{ asset('js/app.js') }}"></script></body></html>
+<script>window.customerAuthenticated = @json(session()->has('customer_login')); window.customerAvatar = @json(session('customer_profile.avatar'));</script><script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script></body></html>

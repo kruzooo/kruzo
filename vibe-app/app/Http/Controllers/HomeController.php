@@ -41,6 +41,11 @@ class HomeController extends Controller
         return view('lookbook');
     }
 
+    public function wishlist(Request $request): View
+    {
+        return view('wishlist', ['inventory' => $this->catalogInventory($request)]);
+    }
+
     public function contact(): View
     {
         return view('contact');
@@ -95,6 +100,23 @@ class HomeController extends Controller
             'k-10-wide-pleat-trouser' => ['name' => 'K-10 WIDE PLEAT TROUSER', 'price' => '₱3,650.00', 'image' => asset('images/products/k-10-wide-pleat-trouser.png')],
             'k-11-modular-chest-harness' => ['name' => 'K-11 MODULAR CHEST HARNESS', 'price' => '₱2,950.00', 'image' => asset('images/products/k-11-modular-chest-harness.png')],
         ];
+
+        // Keep product pages independent of expired remote image URLs.
+        $localProductImages = [
+            'k-01-structural-boxy-tee' => 'images/products/k-07-raw-cut-box-tee.png',
+            'brutalist-monolith-cuff-ring-set' => 'images/products/k-11-modular-chest-harness.png',
+            'k-02-dropped-raglan-longline' => 'images/products/k-06-washed-cargo-tee.png',
+            'geometric-carabiner-key-tether' => 'images/products/k-11-modular-chest-harness.png',
+            'k-03-wide-leg-pleated-cargo' => 'images/products/k-09-modular-field-cargo.png',
+            'atelier-heavyweight-tank' => 'images/products/k-06-washed-cargo-tee.png',
+            'modular-crossbody-chest-rig' => 'images/products/k-11-modular-chest-harness.png',
+            'k-04-sculpted-oversized-hoodie' => 'images/products/k-08-sculpted-concrete-hoodie.png',
+        ];
+        foreach ($localProductImages as $productSlug => $imagePath) {
+            if (isset($products[$productSlug])) {
+                $products[$productSlug]['image'] = asset($imagePath);
+            }
+        }
 
         $productDetails = [
             'k-01-structural-boxy-tee' => [
@@ -178,7 +200,30 @@ class HomeController extends Controller
 
         $products[$slug] = [...$products[$slug], ...$productDetails[$slug]];
 
-        return view('product', ['product' => $products[$slug], 'slug' => $slug]);
+        return view('product', [
+            'product' => $products[$slug],
+            'slug' => $slug,
+            'reviews' => $this->readLocalReviews()[$slug] ?? [],
+        ]);
+    }
+
+    public function submitReview(Request $request, string $slug)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'title' => ['required', 'string', 'max:160'],
+            'body' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $reviews = $this->readLocalReviews();
+        $reviews[$slug] = [
+            ...($reviews[$slug] ?? []),
+            [...$data, 'created_at' => now()->toDateTimeString()],
+        ];
+        $this->writeLocalReviews($reviews);
+
+        return redirect()->route('product', $slug)->with('review_success', 'Your review has been published.');
     }
 
     private function databaseIsConfigured(): bool
@@ -238,7 +283,23 @@ class HomeController extends Controller
             }
         }
 
-        return collect($items)->keyBy('sku')->all();
+        $defaults = [
+            'k-01-structural-boxy-tee' => ['category' => 'oversized', 'material' => '280 GSM COMBED COTTON', 'image' => 'https://lh3.googleusercontent.com/aida/AEtjO1V8Jmze18i8YzTS2QdfbXyxPSe27HTrU1l-yy_vCiBOzFouVvZJFDrrDtSSDHhKCaUSjurWXzh-GlhuYp0ZjOf6Tcs15vIZ3c7vrimP5ZlZqijIOTSTsSrH34vRHq0NRQ6z8UaEErzFShdj9Ovtjkya8nWqUkXzADoTzaHs9Lg8raquBjsO3F4JhHGpPgXA2zVvXx8kcoaBuzU8thywUrKR6HCjQCIHSirZwK2-PR4tkar590QRUjE0RA'],
+            'brutalist-monolith-cuff-ring-set' => ['category' => 'accessories', 'material' => '316L SURGICAL STEEL', 'image' => 'https://lh3.googleusercontent.com/aida/AEtjO1Wy2MsFwkv4gtIKshaJywqsM5BGeDBoeLuR9cNjoPaorVANBq4_Qqw2dmVyGTybzbw_oBbxYt4WtfYkYGUTVO9OHFwFu5-bkzpqZhekHdRgj2HLvT4nJKjr7KIh-fFgwCjH6SEEPHLc0SaOTxelwnYkIIn3uJZGCIcBuNe1d8OIBz08UPbRvz8z-yHk3IliQBBQwSroKR5CNj43DzSU9M4W3jJQ1y64BA2MxkPc5qQ4g9l4811Jz-4FteI'],
+            'k-02-dropped-raglan-longline' => ['category' => 'oversized', 'material' => '320 GSM FRENCH TERRY', 'image' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDEZjNnRfaOW-bWktd7IemrKw2QUgXxHaaKJ9_xycE4NrEgnsKZryjdG7yRUCYi_hl6huCP4Nq0ARvsWG1VN6i8wdWZHDw0-sNHH55a8yZr02kwHbS6x-sgVwzQcMlrDLZQYZQClAfhAyaBKPou55b_Stj_4iF6IkWjvo-2iV3FIgT7sTV3ThXlKd97H-12TyjkfUMFTB-xS3aYSFdVwbtIOCQP_AsOqEofUrXCRoI7w7UZyeAqs44d'],
+            'geometric-carabiner-key-tether' => ['category' => 'accessories', 'material' => 'GRADE 5 TITANIUM', 'image' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZR9MeI3tKNUXUOfOlEwUm72c_uoP47vON0i0odBcCkWYoW2CDhPXcIvosfSmypFjpepDXpozWIiR1Lql0Zm8l_vPnOmy6BdDzxnk156pjKElzT51jiMJ4TXXmcyIw-M3fe5fJ72ngYZ3wVYd-y6GXmtr7YIZ8iEsNC_1d-23mrNhODWzfsl2rmQL0BrxthImpgxZhxMedZE6DRTDeGBciaYinLunVpv-xKdSA3wqJLUN1mvE6UCVf'],
+        ];
+        $localImages = ['k-05-structural-raglan-crew', 'k-06-washed-cargo-tee', 'k-07-raw-cut-box-tee', 'k-08-sculpted-concrete-hoodie', 'k-09-modular-field-cargo', 'k-10-wide-pleat-trouser', 'k-11-modular-chest-harness'];
+
+        return collect($items)->mapWithKeys(function (array $item) use ($defaults, $localImages) {
+            $default = $defaults[$item['sku']] ?? [];
+            $image = $item['image'] ?? ($default['image'] ?? null);
+            if (! $image && in_array($item['sku'], $localImages, true)) {
+                $image = asset('images/products/' . $item['sku'] . '.png');
+            }
+
+            return [$item['sku'] => [...$item, 'category' => $default['category'] ?? 'general', 'material' => $default['material'] ?? 'ARCHIVAL MATERIAL', 'image' => $image]];
+        })->all();
     }
 
     private function inventoryImageUrl(?string $image): ?string
@@ -260,6 +321,32 @@ class HomeController extends Controller
         return is_array($messages) ? $messages : [];
     }
 
+    private function readLocalReviews(): array
+    {
+        $contents = Storage::disk('local')->get('product_reviews.json', '{}');
+        $reviews = json_decode($contents, true);
+
+        return is_array($reviews) ? $reviews : [];
+    }
+
+    private function writeLocalReviews(array $reviews): void
+    {
+        Storage::disk('local')->put('product_reviews.json', json_encode($reviews, JSON_PRETTY_PRINT));
+    }
+
+    private function readLocalOrders(): array
+    {
+        $contents = Storage::disk('local')->get('orders.json', '[]');
+        $orders = json_decode($contents, true);
+
+        return is_array($orders) ? $orders : [];
+    }
+
+    private function writeLocalOrders(array $orders): void
+    {
+        Storage::disk('local')->put('orders.json', json_encode(array_values($orders), JSON_PRETTY_PRINT));
+    }
+
     public function dashboard(Request $request): View
     {
         if (! $request->session()->has('customer_login.email')) {
@@ -267,9 +354,18 @@ class HomeController extends Controller
         }
 
         $cart = $request->session()->get('cart', []);
-        $lastOrder = $request->session()->get('last_order');
-        $customer = $request->session()->get('customer_profile', []);
-        $loginEmail = $request->session()->get('customer_login.email');
+        $loginEmail = strtolower((string) $request->session()->get('customer_login.email'));
+        $accounts = $request->session()->get('customer_accounts', []);
+        $account = $accounts[$loginEmail] ?? [];
+        $customer = $account['profile'] ?? $request->session()->get('customer_profile', []);
+        $accountOrders = $request->session()->get('customer_orders', []);
+        $lastOrder = collect($accountOrders[$loginEmail] ?? [])->last();
+
+        if (! $this->databaseIsConfigured()) {
+            $lastOrder = collect($this->readLocalOrders())
+                ->filter(fn (array $order) => strtolower((string) data_get($order, 'customer.email')) === $loginEmail)
+                ->last() ?: $lastOrder;
+        }
 
         if ($loginEmail && $this->databaseIsConfigured()) {
             try {
@@ -310,6 +406,11 @@ class HomeController extends Controller
             } catch (QueryException $exception) {
                 report($exception);
             }
+        }
+
+        // In the local fallback, never show another account's order.
+        if (! $lastOrder) {
+            $lastOrder = collect($accountOrders[$loginEmail] ?? [])->last();
         }
 
         $cartSubtotal = collect($cart)->sum(fn ($item) => (float) str_replace([',', '₱'], '', $item['price']) * $item['quantity']);
@@ -366,6 +467,16 @@ class HomeController extends Controller
             } catch (QueryException $exception) {
                 report($exception);
             }
+        } else {
+            $accounts = $request->session()->get('customer_accounts', []);
+            $account = $accounts[strtolower($currentEmail)] ?? ['password' => null, 'profile' => []];
+            $newEmail = strtolower($data['email']);
+            $account['profile'] = $data;
+            $accounts[$newEmail] = $account;
+            if ($newEmail !== strtolower($currentEmail)) {
+                unset($accounts[strtolower($currentEmail)]);
+            }
+            $request->session()->put('customer_accounts', $accounts);
         }
 
         $request->session()->put('customer_login.email', $data['email']);
@@ -377,6 +488,82 @@ class HomeController extends Controller
     public function login(): View
     {
         return view('login');
+    }
+
+    public function forgotPassword(): View
+    {
+        return view('forgot-password');
+    }
+
+    public function sendForgotPassword(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'channel' => ['required', 'in:email,sms'],
+            'phone' => ['required_if:channel,sms', 'nullable', 'string', 'max:30'],
+        ]);
+
+        $code = (string) random_int(100000, 999999);
+        $request->session()->put('password_reset', [
+            'email' => $data['email'],
+            'channel' => $data['channel'],
+            'phone' => $data['phone'] ?? null,
+            'code' => $code,
+            'created_at' => now()->toDateTimeString(),
+        ]);
+
+        $destination = $data['channel'] === 'sms' ? ($data['phone'] ?? 'your phone') : $data['email'];
+
+        return back()->with('password_reset_success', "A verification code was prepared for {$destination} via " . strtoupper($data['channel']) . '.')
+            ->with('password_reset_demo_code', $code);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'code' => ['required', 'digits:6'],
+            'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
+        ]);
+        $reset = $request->session()->get('password_reset');
+
+        if (! is_array($reset) || ! hash_equals((string) ($reset['code'] ?? ''), $data['code'])) {
+            throw ValidationException::withMessages(['code' => 'That verification code is invalid.']);
+        }
+
+        if (! empty($reset['created_at']) && now()->diffInMinutes($reset['created_at']) > 15) {
+            $request->session()->forget('password_reset');
+            throw ValidationException::withMessages(['code' => 'That verification code has expired. Request a new one.']);
+        }
+
+        $email = strtolower((string) $reset['email']);
+        $updated = false;
+
+        if ($this->databaseIsConfigured()) {
+            try {
+                $user = User::where('email', $email)->first();
+                if ($user) {
+                    $user->update(['password' => $data['password']]);
+                    $updated = true;
+                }
+            } catch (QueryException $exception) {
+                report($exception);
+            }
+        } else {
+            $accounts = $request->session()->get('customer_accounts', []);
+            if (isset($accounts[$email])) {
+                $accounts[$email]['password'] = Hash::make($data['password']);
+                $request->session()->put('customer_accounts', $accounts);
+                $updated = true;
+            }
+        }
+
+        if (! $updated) {
+            throw ValidationException::withMessages(['email' => 'No customer account was found for that email.']);
+        }
+
+        $request->session()->forget('password_reset');
+
+        return redirect()->route('login')->with('password_reset_complete', 'Password changed successfully. You can now sign in.');
     }
 
     public function authenticate(Request $request)
@@ -515,14 +702,19 @@ class HomeController extends Controller
         $data = $request->validate([
             'operator_id' => ['required', 'string', 'max:255'],
             'passkey' => ['required', 'string', 'min:8', 'max:255'],
-            'division' => ['required', 'in:dispatch,vault,concierge,finance,executive'],
+            'division' => ['required', 'in:dispatch,vault,concierge,finance,executive,ceo,admin'],
             'trusted_session' => ['nullable', 'boolean'],
         ]);
 
-        $isWhitelisted = hash_equals(
-            strtolower((string) env('ADMIN_EMAIL', '')),
-            strtolower($data['operator_id']),
-        ) && Hash::check($data['passkey'], (string) env('ADMIN_PASSWORD_HASH', ''));
+        $adminEmail = strtolower((string) env('ADMIN_EMAIL', ''));
+        $operatorEmail = strtolower($data['operator_id']);
+        $adminCredentials = array_filter([
+            $adminEmail => (string) env('ADMIN_PASSWORD_HASH', ''),
+            'pryvstpedrera@gmail.com' => (string) env('ADMIN_PASSWORD_HASH', ''),
+            strtolower((string) env('ADMIN_EMAIL_2', '')) => (string) env('ADMIN_PASSWORD_HASH_2', ''),
+        ], static fn (string $hash, string $email): bool => $email !== '' && $hash !== '', ARRAY_FILTER_USE_BOTH);
+        $isWhitelisted = isset($adminCredentials[$operatorEmail])
+            && Hash::check($data['passkey'], $adminCredentials[$operatorEmail]);
 
         if (! $isWhitelisted) {
             throw ValidationException::withMessages([
@@ -533,7 +725,9 @@ class HomeController extends Controller
         $request->session()->regenerate();
         $request->session()->put('admin_login', [
             'operator_id' => strtolower($data['operator_id']),
-            'division' => $data['division'],
+            'division' => $operatorEmail === strtolower((string) env('ADMIN_EMAIL_2', ''))
+                ? 'admin'
+                : (in_array($operatorEmail, [$adminEmail, 'pryvstpedrera@gmail.com'], true) ? 'ceo' : $data['division']),
             'trusted_session' => $request->boolean('trusted_session'),
         ]);
 
@@ -546,6 +740,17 @@ class HomeController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('admin.login')->with('admin_logout_success', 'Admin account signed out.');
+    }
+
+    private function paymentMethodLabel(?string $method): string
+    {
+        return match ($method) {
+            'gcash' => 'GCASH / MAYA',
+            'bdo' => 'BDO ONLINE BANKING',
+            'bpi' => 'BPI ONLINE BANKING',
+            'card' => 'VISA / MASTERCARD',
+            default => 'CASH ON DELIVERY',
+        };
     }
 
     public function adminDashboard(Request $request): View
@@ -571,10 +776,11 @@ class HomeController extends Controller
                     return [
                         'number' => $order->order_number,
                         'customer' => trim($order->first_name . ' ' . $order->last_name),
+                        'email' => $order->email,
                         'destination' => trim($order->address . ', ' . $order->barangay . ', ' . $order->city),
                         'items' => $items,
                         'courier' => 'PENDING ASSIGNMENT',
-                        'payment' => strtoupper($order->payment_method === 'gcash' ? 'GCASH / MAYA' : 'COD'),
+                        'payment' => $this->paymentMethodLabel($order->payment_method),
                         'total' => '₱' . number_format((float) $order->subtotal, 2),
                         'status_key' => $order->status,
                         'status' => strtoupper(str_replace('_', ' ', $order->status)),
@@ -587,34 +793,50 @@ class HomeController extends Controller
                 $inventoryCount = collect($inventory)->sum('stock');
                 $lowStockCount = collect($inventory)->filter(fn (InventoryItem $item) => $item->stock <= $item->low_stock_threshold)->count();
                 $settlements = $databaseOrders->groupBy('payment_method')->map(fn ($group) => [
-                    'name' => strtoupper($group->first()->payment_method === 'gcash' ? 'GCASH / MAYA' : 'CASH ON DELIVERY'),
+                    'name' => $this->paymentMethodLabel($group->first()->payment_method),
                     'total' => '₱' . number_format((float) $group->sum('subtotal'), 2),
                 ])->values()->all();
             } catch (QueryException $exception) {
                 report($exception);
             }
         }
+        // Keep every local prototype order visible across customer/admin views.
+        if (! $orders) {
+            $sessionOrders = collect($this->readLocalOrders())
+                ->reject(fn (array $order) => $this->isAutomatedTestOrder($order))
+                ->concat(collect($request->session()->get('customer_orders', []))
+                ->flatMap(fn (array $customerOrders) => $customerOrders)
+                ->values())
+                ->unique('number')
+                ->values();
+            if ($sessionOrders->isEmpty() && ($sessionOrder = $request->session()->get('last_order'))) {
+                $sessionOrders = collect([$sessionOrder]);
+            }
 
-        // Keep the local prototype visible across customer/admin views until MySQL is configured.
-        if (! $orders && ($sessionOrder = $request->session()->get('last_order'))) {
-            $sessionCustomer = $sessionOrder['customer'];
-            $orders[] = [
-                'number' => $sessionOrder['number'],
-                'customer' => trim($sessionCustomer['first_name'] . ' ' . $sessionCustomer['last_name']),
-                'destination' => trim($sessionCustomer['address'] . ', ' . $sessionCustomer['barangay'] . ', ' . $sessionCustomer['city']),
-                'items' => collect($sessionOrder['cart'])->map(fn ($item) => $item['quantity'] . 'x ' . $item['name'])->implode(' + '),
-                'courier' => 'PENDING ASSIGNMENT',
-                'payment' => strtoupper($sessionCustomer['payment_method'] === 'gcash' ? 'GCASH / MAYA' : 'COD'),
-                'total' => '₱' . number_format((float) $sessionOrder['subtotal'], 2),
-                'status_key' => $sessionOrder['status'] ?? 'order_received',
-                'status' => strtoupper(str_replace('_', ' ', $sessionOrder['status'] ?? 'order_received')),
-            ];
-            $revenue = (float) $sessionOrder['subtotal'];
-            $orderCount = 1;
-            $settlements[] = [
-                'name' => strtoupper($sessionCustomer['payment_method'] === 'gcash' ? 'GCASH / MAYA' : 'CASH ON DELIVERY'),
-                'total' => '₱' . number_format($revenue, 2),
-            ];
+            $orders = $sessionOrders->map(function (array $sessionOrder): array {
+                $customer = $sessionOrder['customer'];
+                $status = $sessionOrder['status'] ?? 'order_received';
+
+                return [
+                    'number' => $sessionOrder['number'],
+                    'customer' => trim($customer['first_name'] . ' ' . $customer['last_name']),
+                    'email' => $customer['email'] ?? '',
+                    'destination' => trim($customer['address'] . ', ' . $customer['barangay'] . ', ' . $customer['city']),
+                    'items' => collect($sessionOrder['cart'])->map(fn ($item) => $item['quantity'] . 'x ' . $item['name'])->implode(' + '),
+                    'courier' => 'PENDING ASSIGNMENT',
+                    'payment' => $this->paymentMethodLabel($customer['payment_method'] ?? 'cod'),
+                    'total' => '₱' . number_format((float) $sessionOrder['subtotal'], 2),
+                    'status_key' => $status,
+                    'status' => strtoupper(str_replace('_', ' ', $status)),
+                ];
+            })->all();
+            $revenue = (float) $sessionOrders->sum('subtotal');
+            $orderCount = $sessionOrders->count();
+            $settlements = $sessionOrders->groupBy(fn (array $order) => $order['customer']['payment_method'] ?? 'cod')
+                ->map(fn ($group) => [
+                    'name' => $this->paymentMethodLabel($group->first()['customer']['payment_method'] ?? 'cod'),
+                    'total' => '₱' . number_format((float) $group->sum('subtotal'), 2),
+                ])->values()->all();
         }
 
         return view('admin-dashboard', [
@@ -627,6 +849,11 @@ class HomeController extends Controller
             'inventoryCount' => $inventoryCount,
             'lowStockCount' => $lowStockCount,
         ]);
+    }
+
+    private function isAutomatedTestOrder(array $order): bool
+    {
+        return strtolower((string) data_get($order, 'customer.email')) === 'customer@example.com';
     }
 
     public function updateOrderStatus(Request $request, string $order)
@@ -653,6 +880,27 @@ class HomeController extends Controller
             $sessionOrder['status'] = $data['status'];
             $request->session()->put('last_order', $sessionOrder);
             $updated = true;
+        }
+
+        $customerOrders = $request->session()->get('customer_orders', []);
+        foreach ($customerOrders as $email => $orders) {
+            foreach ($orders as $index => $customerOrder) {
+                if (($customerOrder['number'] ?? null) === $order) {
+                    $customerOrders[$email][$index]['status'] = $data['status'];
+                    $updated = true;
+                }
+            }
+        }
+        $request->session()->put('customer_orders', $customerOrders);
+
+        if (! $this->databaseIsConfigured()) {
+            $localOrders = collect($this->readLocalOrders())->map(function (array $localOrder) use ($order, $data) {
+                if (($localOrder['number'] ?? null) === $order) {
+                    $localOrder['status'] = $data['status'];
+                }
+                return $localOrder;
+            })->all();
+            $this->writeLocalOrders($localOrders);
         }
 
         return redirect()->route('admin.dashboard')->with(
@@ -899,17 +1147,79 @@ class HomeController extends Controller
 
     public function cart(Request $request): View
     {
-        return view('cart', ['cart' => $request->session()->get('cart', [])]);
+        $cart = $this->cartWithLocalImages($request->session()->get('cart', []));
+        $request->session()->put('cart', $cart);
+
+        return view('cart', compact('cart'));
+    }
+
+    private function cartWithLocalImages(array $cart): array
+    {
+        $images = [
+            'k-01-structural-boxy-tee' => 'k-07-raw-cut-box-tee.png',
+            'brutalist-monolith-cuff-ring-set' => 'k-11-modular-chest-harness.png',
+            'k-02-dropped-raglan-longline' => 'k-06-washed-cargo-tee.png',
+            'geometric-carabiner-key-tether' => 'k-11-modular-chest-harness.png',
+            'k-03-wide-leg-pleated-cargo' => 'k-09-modular-field-cargo.png',
+            'atelier-heavyweight-tank' => 'k-06-washed-cargo-tee.png',
+            'modular-crossbody-chest-rig' => 'k-11-modular-chest-harness.png',
+            'k-04-sculpted-oversized-hoodie' => 'k-08-sculpted-concrete-hoodie.png',
+            'k-05-structural-raglan-crew' => 'k-05-structural-raglan-crew.png',
+            'k-06-washed-cargo-tee' => 'k-06-washed-cargo-tee.png',
+            'k-07-raw-cut-box-tee' => 'k-07-raw-cut-box-tee.png',
+            'k-08-sculpted-concrete-hoodie' => 'k-08-sculpted-concrete-hoodie.png',
+            'k-09-modular-field-cargo' => 'k-09-modular-field-cargo.png',
+            'k-10-wide-pleat-trouser' => 'k-10-wide-pleat-trouser.png',
+            'k-11-modular-chest-harness' => 'k-11-modular-chest-harness.png',
+        ];
+
+        return collect($cart)->map(function (array $item) use ($images): array {
+            $slug = $item['slug'] ?? '';
+            if (isset($images[$slug])) {
+                $item['image'] = asset('images/products/' . $images[$slug]);
+            } elseif (filter_var($item['image'] ?? null, FILTER_VALIDATE_URL) && ! str_starts_with((string) $item['image'], url('/'))) {
+                $item['image'] = asset('images/products/k-07-raw-cut-box-tee.png');
+            }
+
+            return $item;
+        })->all();
+    }
+
+    public function cartSummary(Request $request)
+    {
+        $cart = collect($request->session()->get('cart', []));
+        $count = (int) $cart->sum('quantity');
+        $total = $cart->sum(fn (array $item) => (float) str_replace([',', '₱'], '', $item['price']) * (int) $item['quantity']);
+
+        return response()->json(['count' => $count, 'total' => $total]);
     }
 
     public function checkout(Request $request): View
     {
-        return view('checkout', ['cart' => $request->session()->get('cart', [])]);
+        $cart = $this->cartWithLocalImages($request->session()->get('cart', []));
+        $subtotal = collect($cart)->sum(fn ($item) => (float) str_replace([',', '₱'], '', $item['price']) * $item['quantity']);
+        $discount = $request->session()->get('coupon.code') === 'KRUZO250' ? 250 : 0;
+
+        return view('checkout', compact('cart', 'subtotal', 'discount'));
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $data = $request->validate(['coupon_code' => ['required', 'string', 'max:40']]);
+        $code = strtoupper(trim($data['coupon_code']));
+
+        if ($code !== 'KRUZO250') {
+            return back()->withErrors(['coupon_code' => 'That coupon code is not valid.']);
+        }
+
+        $request->session()->put('coupon', ['code' => 'KRUZO250', 'amount' => 250]);
+
+        return back()->with('coupon_success', 'CONGRATULATIONS! Your free coupon KRUZO250 is claimed: ₱250.00 off your initial order.');
     }
 
     public function placeOrder(Request $request)
     {
-        $cart = $request->session()->get('cart', []);
+        $cart = $this->cartWithLocalImages($request->session()->get('cart', []));
 
         if (count($cart) === 0) {
             return redirect()->route('cart');
@@ -926,10 +1236,12 @@ class HomeController extends Controller
             'province' => ['required', 'string', 'max:100'],
             'postal_code' => ['required', 'string', 'max:20'],
             'phone' => ['required', 'string', 'max:40'],
-            'payment_method' => ['required', 'in:cod,gcash'],
+            'payment_method' => ['required', 'in:cod,gcash,bdo,bpi,card'],
         ]);
 
         $subtotal = collect($cart)->sum(fn ($item) => (float) str_replace([',', '₱'], '', $item['price']) * $item['quantity']);
+        $discount = $request->session()->get('coupon.code') === 'KRUZO250' ? 250 : 0;
+        $total = max(0, $subtotal - $discount);
         $placedAt = now();
         $orderNumber = 'KRZ-MNL-' . $placedAt->format('His');
         $customer = collect($data)->except(['password', 'password_confirmation'])->all();
@@ -959,7 +1271,7 @@ class HomeController extends Controller
                     'order_number' => $orderNumber,
                     ...$customer,
                     'status' => 'order_received',
-                    'subtotal' => $subtotal,
+                    'subtotal' => $total,
                     'cart' => $cart,
                     'placed_at' => $placedAt,
                 ]);
@@ -977,10 +1289,33 @@ class HomeController extends Controller
             'id' => $savedOrderId,
             'number' => $orderNumber,
             'cart' => $cart,
-            'subtotal' => $subtotal,
+            'subtotal' => $total,
+            'discount' => $discount,
             'customer' => $customer,
+            'status' => 'order_received',
             'placed_at' => $placedAt->format('M d, Y h:i A'),
         ];
+
+        $accountEmail = strtolower($customer['email']);
+        $customerOrders = $request->session()->get('customer_orders', []);
+        $customerOrders[$accountEmail][] = $order;
+        $request->session()->put('customer_orders', $customerOrders);
+
+        if (! $this->databaseIsConfigured()) {
+            $localOrders = collect($this->readLocalOrders())
+                ->reject(fn (array $localOrder) => ($localOrder['number'] ?? null) === $orderNumber)
+                ->push($order)
+                ->all();
+            $this->writeLocalOrders($localOrders);
+        }
+
+        if (! $this->databaseIsConfigured()) {
+            $accounts = $request->session()->get('customer_accounts', []);
+            $account = $accounts[$accountEmail] ?? ['password' => Hash::make($data['password']), 'profile' => []];
+            $account['profile'] = $customer;
+            $accounts[$accountEmail] = $account;
+            $request->session()->put('customer_accounts', $accounts);
+        }
 
         $request->session()->put('last_order', $order);
         $request->session()->put('customer_profile', $customer);
@@ -989,6 +1324,7 @@ class HomeController extends Controller
             'remember' => true,
         ]);
         $request->session()->forget('cart');
+        $request->session()->forget('coupon');
 
         return redirect()->route('thank-you');
     }
@@ -1015,6 +1351,7 @@ class HomeController extends Controller
             'quantity' => ($cart[$data['slug']]['quantity'] ?? 0) + 1,
         ];
         $cart[$data['slug']] = $item;
+        $cart = $this->cartWithLocalImages($cart);
         $request->session()->put('cart', $cart);
 
         return response()->json(['redirect' => route('cart')]);

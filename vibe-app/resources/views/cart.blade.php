@@ -20,6 +20,7 @@
         <div class="cart-header-inner mx-auto flex h-20 max-w-max-width items-center justify-between px-gutter-mobile lg:px-gutter-desktop">
             <a href="{{ route('home') }}" class="font-headline-md text-title-sm font-bold tracking-widest text-primary">KRUZO <span class="font-normal text-on-surface-variant">|</span> MNL</a>
             <nav class="cart-nav flex items-center gap-space-md font-label-caps text-label-caps uppercase tracking-widest">
+                <a href="{{ route('home') }}" class="font-bold text-on-surface-variant hover:text-primary">HOME</a>
                 <a href="{{ route('shop') }}" class="text-on-surface-variant hover:text-primary">SHOP ALL</a>
                 <a href="{{ route('cart') }}" class="font-bold text-primary">BAG ({{ collect($cart)->sum('quantity') }})</a>
             </nav>
@@ -46,7 +47,7 @@
             <div class="cart-layout grid grid-cols-1 items-start gap-space-2xl lg:grid-cols-12">
                 <section class="cart-items space-y-space-sm lg:col-span-7">
                     @foreach ($cart as $item)
-                        <article class="cart-item flex gap-space-md border-b border-surface-container-highest bg-surface-container-lowest p-space-sm sm:p-space-md">
+                        <article class="cart-item flex gap-space-md border-b border-surface-container-highest bg-surface-container-lowest p-space-sm sm:p-space-md" data-product-slug="{{ $item['slug'] ?? '' }}">
                             <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="cart-item-image h-32 w-24 object-cover sm:h-40 sm:w-32">
                             <div class="cart-item-details flex min-w-0 flex-1 flex-col justify-between gap-space-sm">
                                 <div>
