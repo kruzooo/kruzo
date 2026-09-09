@@ -39,6 +39,9 @@
             <div class="checkout-layout">
                 <form class="checkout-form" method="POST" action="{{ route('checkout.place') }}">
                     @csrf
+                    @if ($errors->has('checkout'))
+                        <p class="checkout-coupon-error">{{ $errors->first('checkout') }}</p>
+                    @endif
                     <section class="checkout-section">
                         <div class="checkout-section-heading"><span>01</span><h2>Contact information</h2></div>
                         <div class="checkout-fields"><label>First name<input type="text" name="first_name" autocomplete="given-name" required></label><label>Last name<input type="text" name="last_name" autocomplete="family-name" required></label></div>

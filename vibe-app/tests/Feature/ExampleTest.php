@@ -400,7 +400,7 @@ class ExampleTest extends TestCase
             'payment_method' => 'bdo',
         ]);
 
-        $response->assertRedirect(route('thank-you'));
+        $response->assertRedirectContains(route('thank-you'));
 
         $this->followRedirects($response)
             ->assertOk()

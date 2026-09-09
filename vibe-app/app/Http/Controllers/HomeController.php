@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\SupportMessage;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -1254,45 +1255,54 @@ class HomeController extends Controller
         $discount = $request->session()->get('coupon.code') === 'KRUZO250' ? 250 : 0;
         $total = max(0, $subtotal - $discount);
         $placedAt = now();
-        $orderNumber = 'KRZ-MNL-' . $placedAt->format('His');
+        $orderNumber = 'KRZ-MNL-' . $placedAt->format('Ymd') . '-' . strtoupper(str()->random(8));
         $customer = collect($data)->except(['password', 'password_confirmation'])->all();
         $savedOrderId = null;
+        $savedOrder = null;
 
         // The browser-only test environment has no PDO driver; configured deployments persist both records.
         if ($this->databaseIsConfigured()) {
             try {
-                $user = User::updateOrCreate(
-                    ['email' => $data['email']],
-                    [
-                        'name' => trim($data['first_name'] . ' ' . $data['last_name']),
-                        'first_name' => $data['first_name'],
-                        'last_name' => $data['last_name'],
-                        'password' => $data['password'],
-                        'phone' => $data['phone'],
-                        'address' => $data['address'],
-                        'barangay' => $data['barangay'],
-                        'city' => $data['city'],
-                        'province' => $data['province'],
-                        'postal_code' => $data['postal_code'],
-                    ],
-                );
+                $savedOrder = DB::transaction(function () use ($data, $customer, $orderNumber, $total, $cart, $placedAt) {
+                    $user = User::updateOrCreate(
+                        ['email' => $data['email']],
+                        [
+                            'name' => trim($data['first_name'] . ' ' . $data['last_name']),
+                            'first_name' => $data['first_name'],
+                            'last_name' => $data['last_name'],
+                            'password' => $data['password'],
+                            'phone' => $data['phone'],
+                            'address' => $data['address'],
+                            'barangay' => $data['barangay'],
+                            'city' => $data['city'],
+                            'province' => $data['province'],
+                            'postal_code' => $data['postal_code'],
+                        ],
+                    );
 
-                $savedOrder = Order::create([
-                    'user_id' => $user->id,
-                    'order_number' => $orderNumber,
-                    ...$customer,
-                    'status' => 'order_received',
-                    'subtotal' => $total,
-                    'cart' => $cart,
-                    'placed_at' => $placedAt,
-                ]);
+                    $order = Order::create([
+                        'user_id' => $user->id,
+                        'order_number' => $orderNumber,
+                        ...$customer,
+                        'status' => 'order_received',
+                        'subtotal' => $total,
+                        'cart' => $cart,
+                        'placed_at' => $placedAt,
+                    ]);
+
+                    foreach ($cart as $item) {
+                        InventoryItem::where('sku', $item['slug'])->decrement('stock', (int) $item['quantity']);
+                    }
+
+                    return $order;
+                });
                 $savedOrderId = $savedOrder->id;
-
-                foreach ($cart as $item) {
-                    InventoryItem::where('sku', $item['slug'])->decrement('stock', (int) $item['quantity']);
-                }
-            } catch (QueryException $exception) {
+            } catch (\Throwable $exception) {
                 report($exception);
+
+                return back()
+                    ->withInput($request->except(['password', 'password_confirmation']))
+                    ->withErrors(['checkout' => 'We could not save your order. Your bag is still reserved. Please try again.']);
             }
         }
 
@@ -1329,6 +1339,7 @@ class HomeController extends Controller
         }
 
         $request->session()->put('last_order', $order);
+        $request->session()->put('last_order_number', $orderNumber);
         $request->session()->put('customer_profile', $customer);
         $request->session()->put('customer_login', [
             'email' => $customer['email'],
@@ -1337,12 +1348,65 @@ class HomeController extends Controller
         $request->session()->forget('cart');
         $request->session()->forget('coupon');
 
-        return redirect()->route('thank-you');
+        return redirect()->route('thank-you', [
+            'order' => $orderNumber,
+            'receipt' => $this->confirmationSignature($orderNumber, $customer['email']),
+        ]);
     }
 
     public function thankYou(Request $request): View
     {
-        return view('thank-you', ['order' => $request->session()->get('last_order')]);
+        $order = $request->session()->get('last_order');
+        $orderNumber = (string) ($request->query('order') ?: $request->session()->get('last_order_number'));
+        $receipt = (string) $request->query('receipt');
+
+        if ($this->databaseIsConfigured() && $orderNumber !== '') {
+            try {
+                $databaseOrder = Order::where('order_number', $orderNumber)->first();
+
+                if ($databaseOrder && (
+                    $request->session()->get('last_order_number') === $databaseOrder->order_number
+                    || hash_equals($this->confirmationSignature($databaseOrder->order_number, $databaseOrder->email), $receipt)
+                )) {
+                    $order = $this->orderForConfirmation($databaseOrder);
+                    $request->session()->put('last_order', $order);
+                    $request->session()->put('last_order_number', $databaseOrder->order_number);
+                }
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        return view('thank-you', compact('order'));
+    }
+
+    private function confirmationSignature(string $orderNumber, string $email): string
+    {
+        return hash_hmac('sha256', strtolower($orderNumber . '|' . $email), (string) config('app.key'));
+    }
+
+    private function orderForConfirmation(Order $order): array
+    {
+        return [
+            'id' => $order->id,
+            'number' => $order->order_number,
+            'cart' => $this->cartWithLocalImages($order->cart ?? []),
+            'subtotal' => (float) $order->subtotal,
+            'customer' => [
+                'email' => $order->email,
+                'first_name' => $order->first_name,
+                'last_name' => $order->last_name,
+                'phone' => $order->phone,
+                'address' => $order->address,
+                'barangay' => $order->barangay,
+                'city' => $order->city,
+                'province' => $order->province,
+                'postal_code' => $order->postal_code,
+                'payment_method' => $order->payment_method,
+            ],
+            'status' => $order->status,
+            'placed_at' => $order->placed_at?->format('M d, Y h:i A'),
+        ];
     }
 
     public function addToCart(Request $request)
