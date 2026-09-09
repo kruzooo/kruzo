@@ -233,10 +233,16 @@ class HomeController extends Controller
         }
 
         $connection = (string) config('database.default');
+
+        if ($connection === '' || $connection === 'sqlite') {
+            return false;
+        }
+
         $database = (string) config("database.connections.{$connection}.database");
         $username = (string) config("database.connections.{$connection}.username");
 
         return $database !== ''
+            && $username !== ''
             && ! str_contains(strtolower($database), 'your_database')
             && ! str_contains(strtolower($username), 'your_database');
     }
