@@ -87,11 +87,13 @@ return [
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('PGHOST') ? null : env('DB_URL', env('DATABASE_URL', env('DATABASE_URL_UNPOOLED', env('POSTGRES_URL')))),
-            'host' => env('DB_HOST', env('PGHOST', '127.0.0.1')),
-            'port' => env('DB_PORT', env('PGPORT', '5432')),
-            'database' => env('DB_DATABASE', env('PGDATABASE', 'laravel')),
-            'username' => env('DB_USERNAME', env('PGUSER', 'root')),
-            'password' => env('DB_PASSWORD', env('PGPASSWORD', '')),
+            // Vercel's Neon integration supplies PG* variables. Prefer them over
+            // the placeholder DB_* values retained in the repository's local .env.
+            'host' => env('PGHOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('PGPORT', env('DB_PORT', '5432')),
+            'database' => env('PGDATABASE', env('DB_DATABASE', 'laravel')),
+            'username' => env('PGUSER', env('DB_USERNAME', 'root')),
+            'password' => env('PGPASSWORD', env('DB_PASSWORD', '')),
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
