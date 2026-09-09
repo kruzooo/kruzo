@@ -277,7 +277,21 @@ class HomeController extends Controller
 
         if ($this->databaseIsConfigured()) {
             try {
-                $items = InventoryItem::orderBy('name')->get()->map(fn (InventoryItem $item) => [
+                $databaseItems = InventoryItem::orderBy('name')->get();
+
+                // A new production database starts empty. Restore the built-in
+                // catalog once without touching any inventory added by staff.
+                if ($databaseItems->isEmpty()) {
+                    InventoryItem::upsert(
+                        $this->localInventory(),
+                        ['sku'],
+                        ['name', 'stock', 'low_stock_threshold', 'price'],
+                    );
+
+                    $databaseItems = InventoryItem::orderBy('name')->get();
+                }
+
+                $items = $databaseItems->map(fn (InventoryItem $item) => [
                     'sku' => $item->sku,
                     'name' => $item->name,
                     'stock' => $item->stock,
