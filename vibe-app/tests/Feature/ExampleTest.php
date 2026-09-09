@@ -231,7 +231,7 @@ class ExampleTest extends TestCase
         $this->assertSame('client@example.com', session('customer_login.email'));
     }
 
-    public function test_customer_registration_creates_a_client_portfolio_session(): void
+    public function test_customer_registration_returns_to_login_without_authenticating(): void
     {
         $this->get('/register')
             ->assertOk()
@@ -247,11 +247,13 @@ class ExampleTest extends TestCase
             'welcome_credit' => '1',
             'drop_alerts' => '1',
             'terms' => '1',
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect(route('login'));
 
-        $this->assertSame('Alyssa Marie', session('customer_profile.first_name'));
-        $this->assertSame('alyssa@example.com', session('customer_login.email'));
-        $this->followRedirects($response)->assertSee('Welcome back, Alyssa Marie.');
+        $this->assertNull(session('customer_profile'));
+        $this->assertNull(session('customer_login'));
+        $accounts = session('customer_accounts', []);
+        $this->assertSame('Alyssa Marie', $accounts['alyssa@example.com']['profile']['first_name']);
+        $this->followRedirects($response)->assertSee('Account created successfully. Please sign in to continue.');
     }
 
     public function test_admin_dashboard_returns_operations_overview(): void

@@ -691,14 +691,9 @@ class HomeController extends Controller
             $request->session()->put('customer_accounts', $accounts);
         }
 
-        $request->session()->regenerate();
-        $request->session()->put('customer_profile', $profile);
-        $request->session()->put('customer_login', [
-            'email' => strtolower($profile['email']),
-            'remember' => true,
-        ]);
+        $request->session()->forget(['customer_profile', 'customer_login']);
 
-        return redirect()->route('dashboard')->with('login_success', 'Account created successfully. Welcome to the KRUZO customer dashboard.');
+        return redirect()->route('login')->with('registration_success', 'Account created successfully. Please sign in to continue.');
     }
 
     public function adminLogin(): View
