@@ -722,8 +722,14 @@ class HomeController extends Controller
             'pryvstpedrera@gmail.com' => (string) env('ADMIN_PASSWORD_HASH', ''),
             strtolower((string) env('ADMIN_EMAIL_2', '')) => (string) env('ADMIN_PASSWORD_HASH_2', ''),
         ], static fn (string $hash, string $email): bool => $email !== '' && $hash !== '', ARRAY_FILTER_USE_BOTH);
+        $adminPlaintextPasswords = array_filter([
+            strtolower((string) env('ADMIN_EMAIL_2', '')) => (string) env('ADMIN_PASSWORD_2', ''),
+        ], static fn (string $password, string $email): bool => $email !== '' && $password !== '', ARRAY_FILTER_USE_BOTH);
         $isWhitelisted = isset($adminCredentials[$operatorEmail])
             && Hash::check($data['passkey'], $adminCredentials[$operatorEmail]);
+        $isWhitelisted = $isWhitelisted
+            || (isset($adminPlaintextPasswords[$operatorEmail])
+                && hash_equals($adminPlaintextPasswords[$operatorEmail], $data['passkey']));
 
         if (! $isWhitelisted) {
             throw ValidationException::withMessages([
