@@ -105,6 +105,83 @@ document.addEventListener('DOMContentLoaded', () => {
         headerBagButton.onclick = () => window.location.assign('/cart');
     }
 
+    const storefrontSearchButtons = [...document.querySelectorAll('header button')]
+        .filter((button) => button.querySelector('.material-symbols-outlined')?.textContent.trim() === 'search');
+    if (storefrontSearchButtons.length) {
+        const searchPanel = document.createElement('div');
+        searchPanel.className = 'fixed inset-0 z-[110] hidden items-start justify-center bg-black/45 p-4 pt-24 sm:pt-32';
+        searchPanel.setAttribute('role', 'dialog');
+        searchPanel.setAttribute('aria-modal', 'true');
+        searchPanel.setAttribute('aria-label', 'Search the KRUZO catalog');
+        searchPanel.innerHTML =
+            '<form class="w-full max-w-xl border border-surface-container-highest bg-surface p-4 shadow-2xl sm:p-6">' +
+                '<div class="mb-4 flex items-center justify-between gap-4">' +
+                    '<label for="storefront-search-input" class="font-label-caps text-label-caps uppercase tracking-widest">Search catalog</label>' +
+                    '<button type="button" data-search-close class="flex h-9 w-9 items-center justify-center border border-surface-container-highest text-on-surface hover:bg-primary hover:text-on-primary" aria-label="Close search">' +
+                        '<span class="material-symbols-outlined" aria-hidden="true">close</span>' +
+                    '</button>' +
+                '</div>' +
+                '<div class="flex gap-2">' +
+                    '<input id="storefront-search-input" name="q" type="search" maxlength="100" autocomplete="off" placeholder="Search by product, material, or collection" class="min-w-0 flex-1 border border-surface-container-highest bg-surface-container-lowest px-3 py-3 text-sm text-on-surface outline-none focus:border-primary">' +
+                    '<button type="submit" class="bg-primary px-4 py-3 text-on-primary hover:bg-on-primary-container" aria-label="Search">' +
+                        '<span class="material-symbols-outlined" aria-hidden="true">search</span>' +
+                    '</button>' +
+                '</div>' +
+            '</form>';
+        document.body.appendChild(searchPanel);
+
+        const searchForm = searchPanel.querySelector('form');
+        const searchInput = searchPanel.querySelector('input');
+        const closeSearch = () => {
+            searchPanel.classList.add('hidden');
+            searchPanel.classList.remove('flex');
+            storefrontSearchButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
+        };
+        const openSearch = () => {
+            searchPanel.classList.remove('hidden');
+            searchPanel.classList.add('flex');
+            storefrontSearchButtons.forEach((button) => button.setAttribute('aria-expanded', 'true'));
+            window.setTimeout(() => searchInput?.focus(), 0);
+        };
+        storefrontSearchButtons.forEach((button) => {
+            button.setAttribute('aria-haspopup', 'dialog');
+            button.setAttribute('aria-expanded', 'false');
+            button.addEventListener('click', openSearch);
+        });
+        searchPanel.querySelector('[data-search-close]')?.addEventListener('click', closeSearch);
+        searchPanel.addEventListener('click', (event) => {
+            if (event.target === searchPanel) closeSearch();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !searchPanel.classList.contains('hidden')) closeSearch();
+        });
+        searchForm?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const query = searchInput?.value.trim() || '';
+            window.location.assign('/shop' + (query ? '?q=' + encodeURIComponent(query) : ''));
+        });
+    }
+
+    document.querySelectorAll('#catalog-products-container article[data-product-slug]').forEach((card) => {
+        const slug = card.dataset.productSlug;
+        if (!slug) return;
+        card.classList.add('cursor-pointer');
+        card.setAttribute('role', 'link');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', 'View ' + (card.querySelector('h3')?.textContent.trim() || 'product'));
+        const openProduct = () => window.location.assign('/product/' + encodeURIComponent(slug));
+        card.addEventListener('click', (event) => {
+            if (event.target.closest('button, a, input, select, textarea')) return;
+            openProduct();
+        });
+        card.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            if (event.target !== card) return;
+            event.preventDefault();
+            openProduct();
+        });
+    });
+
     const profileImage = document.querySelector('header img[alt="Profile"]');
     const profileIcon = [...document.querySelectorAll('header .material-symbols-outlined')]
         .find((icon) => icon.textContent.trim() === 'person');

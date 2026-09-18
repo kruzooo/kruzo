@@ -835,6 +835,7 @@
       const queryParams = new URLSearchParams(window.location.search);
       const requestedCategory = queryParams.get('category');
       const requestedSort = queryParams.get('sort');
+      const requestedSearch = (queryParams.get('q') || '').trim().toLocaleLowerCase().slice(0, 100);
       let activeFilter = 'all';
       if (['oversized', 'heavyweight', 'trousers', 'accessories'].includes(requestedCategory)) {
         activeFilter = requestedCategory;
@@ -928,6 +929,7 @@
             if (sortValue === 'newest') return catalogCards.indexOf(b) - catalogCards.indexOf(a);
             return catalogCards.indexOf(a) - catalogCards.indexOf(b);
           });
+          let visibleCount = 0;
 
           sortedCards.forEach((card) => {
             const params = cardParams[card.dataset.productSlug] || {};
@@ -939,7 +941,10 @@
             });
             const priceLimit = Number(document.getElementById('catalog-price-range')?.value || 5000);
             const matchesPrice = Number(card.dataset.price) <= priceLimit;
-            const matches = matchesCategory && matchesParams && matchesPrice;
+            const searchableText = (card.dataset.productSlug || '') + ' ' + (card.textContent || '');
+            const matchesSearch = !requestedSearch || searchableText.toLocaleLowerCase().includes(requestedSearch);
+            const matches = matchesCategory && matchesParams && matchesPrice && matchesSearch;
+            if (matches) visibleCount += 1;
             window.clearTimeout(card._catalogFilterTimer);
             if (matches) {
               const wasHidden = card.classList.contains('hidden');
@@ -960,9 +965,12 @@
             container.appendChild(card);
           });
 
-          const visibleCount = sortedCards.filter((card) => !card.classList.contains('hidden')).length;
           emptyState.classList.toggle('hidden', visibleCount > 0);
-          if (resultsCount) resultsCount.textContent = `SHOWING ${visibleCount} ARCHIVAL SPECS`;
+          if (resultsCount) {
+            resultsCount.textContent = requestedSearch
+              ? 'SHOWING ' + visibleCount + ' RESULTS FOR "' + requestedSearch.toUpperCase() + '"'
+              : 'SHOWING ' + visibleCount + ' ARCHIVAL SPECS';
+          }
           if (displayCount) displayCount.textContent = `DISPLAYING ${visibleCount} OF ${catalogCards.length} ARCHIVAL PIECES`;
         };
 
