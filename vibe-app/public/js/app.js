@@ -1,5 +1,39 @@
 // Public JavaScript entry point for shared hosting deployments.
 
+// Motion is independent of commerce handlers and never hides waiting content.
+document.addEventListener('DOMContentLoaded', () => {
+    if (!/^\/(?:shop|lookbook-ss25|product\/[^/]+)?\/?$/.test(location.pathname)) return;
+    document.body.classList.add('storefront-motion');
+    const isHomepage = location.pathname === '/';
+    if (isHomepage) document.body.classList.add('homepage-motion');
+    const preference = matchMedia('(prefers-reduced-motion: reduce)');
+    if (preference.matches || !('IntersectionObserver' in window)) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(({ target, isIntersecting, boundingClientRect }) => {
+            if (!isIntersecting) {
+                if (isHomepage && boundingClientRect.top >= innerHeight) {
+                    target.classList.remove('atelier-enter');
+                }
+                return;
+            }
+            target.classList.add('atelier-enter');
+            if (!isHomepage) observer.unobserve(target);
+        });
+    }, { threshold: 0, rootMargin: `0px 0px -${isHomepage ? 64 : 24}px 0px` });
+
+    document.querySelectorAll('main section, main [data-product-slug]').forEach((element) => {
+        // Animate sections, or their product cards, but never both nested layers.
+        if (element.matches('section') && element.querySelector('[data-product-slug]')) return;
+        if (element.parentElement.closest('section') && element.matches('section')) return;
+        observer.observe(element);
+    });
+    preference.addEventListener('change', (event) => {
+        if (event.matches) observer.disconnect();
+    });
+    window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
